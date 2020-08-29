@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: window-input
-Version: 0.1
+Version: 0.2
 Summary: A set of tools for interacting with windows regardless of them being minimized or in background.
 Home-page: https://github.com/56kyle/window_input
 Author: Kyle Oliver
@@ -19,9 +19,15 @@ Description: # window_input
         ### Examples
         
             from window_input import Window, Key
+            import time
             
             if __name__ == "__main__":
-                TODO
+                foreground = Window()
+                foreground.key_down(Key.VK_F4)
+                foreground.key_down(Key.VK_LALT)
+                time.sleep(.2)
+                foreground.key_up(Key.VK_F4)
+                foreground.key_up(Key.VK_LALT)
         
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3

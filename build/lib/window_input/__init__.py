@@ -365,6 +365,7 @@ class Window:
         elif type(hwnd) is str:
             hwnd = win32gui.FindWindow(None, hwnd)
         self.hwnd = hwnd
+        self.text = win32gui.GetWindowText(self.hwnd)
 
     def pixel(self, x, y=None):
         if y is None:
@@ -379,7 +380,7 @@ class Window:
         r, g, b = rgbint2rgbtuple(colorref)
         return Color(r, g, b)
 
-    def click(self, x=None, y=None, button=Key.VK_LBUTTON, duration=.3):
+    def click(self, x=None, y=None, button=Key.VK_LBUTTON, duration=.2):
         if x:
             if not y:
                 y = x[1]
@@ -437,14 +438,14 @@ class Window:
         win32api.PostMessage(self.hwnd, u_int, w_param, l_param)
 
     def bring_to_front(self):
-        front = Window(win32gui.GetForegroundWindow())
-        while win32gui.GetWindowText(front) != win32gui.GetWindowText(self.hwnd):
+        front = Window()
+        while front.hwnd != self.hwnd:
             front.minimize()
             try:
                 win32gui.SetForegroundWindow(self.hwnd)
             except:
                 pass
-            front = Window(win32gui.GetForegroundWindow())
+            front = Window()
 
     def minimize(self):
         win32gui.ShowWindow(self.hwnd, win32con.SW_FORCEMINIMIZE)
