@@ -1,0 +1,29 @@
+Metadata-Version: 2.1
+Name: window-input
+Version: 0.1
+Summary: A set of tools for interacting with windows regardless of them being minimized or in background.
+Home-page: https://github.com/56kyle/window_input
+Author: Kyle Oliver
+Author-email: 56kyleoliver@gmail.com
+License: UNKNOWN
+Description: # window_input
+         A set of tools for interacting with windows, including those that are non foreground and even minimized.
+        
+        
+        ### Installation
+            pip install window_input
+        
+        ### Recommended Usage
+            from window_input import Window, Key
+            
+        ### Examples
+        
+            from window_input import Window, Key
+            
+            if __name__ == "__main__":
+                TODO
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Description-Content-Type: text/markdown

@@ -1,0 +1,8 @@
+README.md
+setup.py
+window_input/__init__.py
+window_input.egg-info/PKG-INFO
+window_input.egg-info/SOURCES.txt
+window_input.egg-info/dependency_links.txt
+window_input.egg-info/requires.txt
+window_input.egg-info/top_level.txt
