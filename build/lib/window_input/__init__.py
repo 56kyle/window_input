@@ -403,15 +403,15 @@ class Window:
         params = {
             Key.VK_LBUTTON: [
                 win32con.WM_LBUTTONDOWN,
-                win32con.MK_LBUTTON
+                None
             ],
             Key.VK_RBUTTON: [
                 win32con.WM_RBUTTONDOWN,
-                win32con.MK_RBUTTON
+                None
             ],
             Key.VK_MBUTTON: [
                 win32con.WM_MBUTTONDOWN,
-                win32con.MK_MBUTTON
+                None
             ]
         }
 
