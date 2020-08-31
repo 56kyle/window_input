@@ -473,9 +473,9 @@ def points_to_region(p1, p2=None):
 
 
 def rgbint2rgbtuple(rgb_int):
-    blue = rgb_int & 255
+    red = rgb_int & 255
     green = (rgb_int >> 8) & 255
-    red = (rgb_int >> 16) & 255
+    blue = (rgb_int >> 16) & 255
     return red, green, blue
 
 

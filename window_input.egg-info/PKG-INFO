@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: window-input
-Version: 0.3
+Version: 0.4
 Summary: A set of tools for interacting with windows regardless of them being minimized or in background.
 Home-page: https://github.com/56kyle/window_input
 Author: Kyle Oliver
