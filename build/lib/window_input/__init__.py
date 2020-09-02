@@ -1,6 +1,7 @@
-import win32gui, win32api, win32con
+import win32gui, win32api, win32con, win32ui
 import collections
 import time
+from PIL import Image
 
 
 Point = collections.namedtuple("Point", "x y")
@@ -379,6 +380,25 @@ class Window:
         win32gui.DeleteDC(dc)
         r, g, b = rgbint2rgbtuple(colorref)
         return Color(r, g, b)
+
+    def capture(self, region):
+        w = region[1][0] - region[0][0]
+        h = region[1][1] - region[0][1]
+        wDC = win32gui.GetWindowDC(self.win.hwnd)
+        dcObj = win32ui.CreateDCFromHandle(wDC)
+        cDC = dcObj.CreateCompatibleDC()
+        dataBitMap = win32ui.CreateBitmap()
+        dataBitMap.CreateCompatibleBitmap(dcObj, w, h)
+        cDC.SelectObject(dataBitMap)
+        cDC.BitBlt((0, 0), (w, h), dcObj, region[0], win32con.SRCCOPY)
+        bmpinfo = dataBitMap.GetInfo()
+        bmpstr = dataBitMap.GetBitmapBits(True)
+        print(bmpstr)
+        im = Image.frombuffer(
+            'RGB',
+            (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
+            bmpstr, 'raw', 'BGRX', 0, 1)
+        return im
 
     def click(self, x=None, y=None, button=Key.VK_LBUTTON, duration=.2):
         if x:
