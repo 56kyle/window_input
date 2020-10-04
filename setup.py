@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 setuptools.setup(
      name='window_input',
-     version='1.1',
+     version='1.2',
      author="Kyle Oliver",
      author_email="56kyleoliver@gmail.com",
      description="A set of tools for interacting with windows regardless of them being minimized or in background.",

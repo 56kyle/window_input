@@ -393,14 +393,10 @@ class Window:
         cDC.BitBlt((0, 0), (w, h), dcObj, region[0], win32con.SRCCOPY)
         bmpinfo = dataBitMap.GetInfo()
         bmpstr = dataBitMap.GetBitmapBits(True)
-        return bmpstr, bmpinfo
-
-    def bitmap_to_image(self, bmpstr, bmpinfo):
-        im = Image.frombuffer(
+        return Image.frombuffer(
             'RGB',
             (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
             bmpstr, 'raw', 'BGRX', 0, 1)
-        return im
 
     def click(self, x=None, y=None, button=Key.VK_LBUTTON, duration=.2):
         if x:
@@ -500,6 +496,3 @@ def rgbint2rgbtuple(rgb_int):
     green = (rgb_int >> 8) & 255
     blue = (rgb_int >> 16) & 255
     return red, green, blue
-
-
-
