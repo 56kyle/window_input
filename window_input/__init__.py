@@ -384,7 +384,7 @@ class Window:
     def capture(self, region):
         w = region[1][0] - region[0][0]
         h = region[1][1] - region[0][1]
-        wDC = win32gui.GetWindowDC(self.win.hwnd)
+        wDC = win32gui.GetWindowDC(self.hwnd)
         dcObj = win32ui.CreateDCFromHandle(wDC)
         cDC = dcObj.CreateCompatibleDC()
         dataBitMap = win32ui.CreateBitmap()
@@ -393,7 +393,9 @@ class Window:
         cDC.BitBlt((0, 0), (w, h), dcObj, region[0], win32con.SRCCOPY)
         bmpinfo = dataBitMap.GetInfo()
         bmpstr = dataBitMap.GetBitmapBits(True)
-        print(bmpstr)
+        return bmpstr, bmpinfo
+
+    def bitmap_to_image(self, bmpstr, bmpinfo):
         im = Image.frombuffer(
             'RGB',
             (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
@@ -413,7 +415,7 @@ class Window:
         if win32gui.GetForegroundWindow() == self.hwnd:
             win32api.SetCursorPos((x, y))
         else:
-            win32gui.PostMessage(self.hwnd, win32con.WM_MOUSEMOVE, 0, l_param)
+            win32gui.PostMessage(self.hwnd, win32con.WM_MOUSEMOVE, None, l_param)
         self.mouse_down(button, l_param)
         time.sleep(duration)
         self.mouse_up(button, l_param)
@@ -460,11 +462,12 @@ class Window:
     def bring_to_front(self):
         front = Window()
         while front.hwnd != self.hwnd:
-            front.minimize()
             try:
                 win32gui.SetForegroundWindow(self.hwnd)
             except:
-                pass
+                front.minimize()
+                while Window().hwnd == front.hwnd:
+                    pass
             front = Window()
 
     def minimize(self):
