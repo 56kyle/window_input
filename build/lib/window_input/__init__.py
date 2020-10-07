@@ -360,6 +360,8 @@ class Key:
 
 
 class Window:
+    never_minimize = ["Task Switching", "Cortana"]
+
     def __init__(self, hwnd=None):
         if hwnd is None:
             hwnd = win32gui.GetForegroundWindow()
@@ -463,11 +465,13 @@ class Window:
             except:
                 front.minimize()
                 while Window().hwnd == front.hwnd:
-                    pass
+                    if front.text in self.never_minimize:
+                        break
             front = Window()
 
     def minimize(self):
-        win32gui.ShowWindow(self.hwnd, win32con.SW_FORCEMINIMIZE)
+        if self.text not in self.never_minimize:
+            win32gui.ShowWindow(self.hwnd, win32con.SW_FORCEMINIMIZE)
 
     def press(self, key, duration=.1):
         self.key_down(key)
