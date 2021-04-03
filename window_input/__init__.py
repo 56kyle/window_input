@@ -360,8 +360,6 @@ class Key:
 
 
 class Window:
-    never_minimize = ["Task Switching", "Cortana", ""]
-
     def __init__(self, hwnd=None):
         if hwnd is None:
             hwnd = win32gui.GetForegroundWindow()
@@ -378,23 +376,43 @@ class Window:
             dc = win32gui.GetWindowDC(self.hwnd)
             colorref = win32gui.GetPixel(dc, x + 8, y + 8)
         except:
-            raise(Exception, "Could not get pixel")
+            if self.is_minimized:
+                win32gui.ShowWindow(self.hwnd, win32con.SW_SHOWNOACTIVATE)
+                return self.pixel(x, y)
+            else:
+                raise Exception("Could not get pixel")
         win32gui.DeleteDC(dc)
         r, g, b = rgbint2rgbtuple(colorref)
         return Color(r, g, b)
 
-    def capture(self, region):
+    def capture(self, region=None, screen_draw_wait=.06):
+        if not region:
+            rect = win32gui.GetWindowRect(self.hwnd)
+            region = ((rect[0]+8, rect[1]+8), (rect[2]-8, rect[3]-8))
+
+        was_mini = False
+        if self.is_minimized:
+            was_mini = True
+            win32gui.ShowWindow(self.hwnd, win32con.SW_SHOWNOACTIVATE)
+
+            # If we don't delay the screen shot then the window might not be fully drawn if it was minimized.
+            time.sleep(screen_draw_wait)
+
         w = region[1][0] - region[0][0]
         h = region[1][1] - region[0][1]
-        wDC = win32gui.GetWindowDC(self.hwnd)
-        dcObj = win32ui.CreateDCFromHandle(wDC)
-        cDC = dcObj.CreateCompatibleDC()
-        dataBitMap = win32ui.CreateBitmap()
-        dataBitMap.CreateCompatibleBitmap(dcObj, w, h)
-        cDC.SelectObject(dataBitMap)
-        cDC.BitBlt((0, 0), (w, h), dcObj, region[0], win32con.SRCCOPY)
-        bmpinfo = dataBitMap.GetInfo()
-        bmpstr = dataBitMap.GetBitmapBits(True)
+        w_dc = win32gui.GetWindowDC(self.hwnd)
+        dc_obj = win32ui.CreateDCFromHandle(w_dc)
+        c_dc = dc_obj.CreateCompatibleDC()
+        data_bit_map = win32ui.CreateBitmap()
+        data_bit_map.CreateCompatibleBitmap(dc_obj, w, h)
+        c_dc.SelectObject(data_bit_map)
+        c_dc.BitBlt((0, 0), (w, h), dc_obj, region[0], win32con.SRCCOPY)
+        bmpinfo = data_bit_map.GetInfo()
+        bmpstr = data_bit_map.GetBitmapBits(True)
+
+        if was_mini:
+            win32gui.ShowWindow(self.hwnd, win32con.SW_MINIMIZE)
+
         return Image.frombuffer(
             'RGB',
             (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
@@ -421,18 +439,9 @@ class Window:
     def mouse_down(self, button=Key.VK_LBUTTON, l_param=None):
         # May need to call WM_MOUSEMOVE before hand depending on usage if not using through click()
         params = {
-            Key.VK_LBUTTON: [
-                win32con.WM_LBUTTONDOWN,
-                None
-            ],
-            Key.VK_RBUTTON: [
-                win32con.WM_RBUTTONDOWN,
-                None
-            ],
-            Key.VK_MBUTTON: [
-                win32con.WM_MBUTTONDOWN,
-                None
-            ]
+            Key.VK_LBUTTON: [win32con.WM_LBUTTONDOWN, None],
+            Key.VK_RBUTTON: [win32con.WM_RBUTTONDOWN, None],
+            Key.VK_MBUTTON: [win32con.WM_MBUTTONDOWN, None]
         }
 
         u_int, w_param = params[button]
@@ -440,41 +449,13 @@ class Window:
 
     def mouse_up(self, button=Key.VK_LBUTTON, l_param=None):
         params = {
-            Key.VK_LBUTTON: [
-                win32con.WM_LBUTTONUP,
-                None
-            ],
-            Key.VK_RBUTTON: [
-                win32con.WM_RBUTTONUP,
-                None
-            ],
-            Key.VK_MBUTTON: [
-                win32con.WM_MBUTTONUP,
-                None
-            ]
+            Key.VK_LBUTTON: [win32con.WM_LBUTTONUP, None],
+            Key.VK_RBUTTON: [win32con.WM_RBUTTONUP, None],
+            Key.VK_MBUTTON: [win32con.WM_MBUTTONUP, None]
         }
 
         u_int, w_param = params[button]
         win32api.PostMessage(self.hwnd, u_int, w_param, l_param)
-
-    def bring_to_front(self):
-        front = Window()
-        if self.is_minimized:
-            win32gui.ShowWindow(self.hwnd, win32con.SW_RESTORE)
-        try:
-            win32gui.SetForegroundWindow(self.hwnd)
-            win32gui.ShowWindow(self.hwnd, win32con.SW_SHOW)
-        except:
-            front.minimize()
-            self.bring_to_front()
-
-    def minimize(self):
-        if self.text not in self.never_minimize:
-            win32gui.ShowWindow(self.hwnd, win32con.SW_FORCEMINIMIZE)
-
-    @property
-    def is_minimized(self):
-        return win32gui.IsIconic(self.hwnd) != 0
 
     def press(self, key, duration=.1):
         self.key_down(key)
@@ -486,6 +467,59 @@ class Window:
 
     def key_up(self, key):
         win32api.PostMessage(self.hwnd, win32con.WM_KEYUP, key, 0)
+
+    def bring_to_front(self):
+        if self.is_minimized:
+            win32gui.ShowWindow(self.hwnd, win32con.SW_RESTORE)
+        self.hide_always_on_top_windows()
+        win32gui.SetForegroundWindow(self.hwnd)
+        win32gui.ShowWindow(self.hwnd, win32con.SW_SHOW)
+
+    def maximize(self):
+        win32gui.ShowWindow(self.hwnd, win32con.SW_MAXIMIZE)
+
+    def minimize(self):
+        win32gui.ShowWindow(self.hwnd, win32con.SW_FORCEMINIMIZE)
+
+    @property
+    def is_minimized(self):
+        return win32gui.IsIconic(self.hwnd) != 0
+
+    def hide_always_on_top_windows(self):
+        win32gui.EnumWindows(self._window_enum_callback_hide, None)
+
+    def _window_enum_callback_hide(self, hwnd, unused):
+        """Shamelessly stolen from https://programmer.help/blogs/python-win32gui-calls-the-window-to-the-front.html"""
+        if hwnd != self.hwnd: # ignore self
+            # Is the window visible and marked as an always-on-top (topmost) window?
+            if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE) & win32con.WS_EX_TOPMOST:
+                # Ignore windows of class 'Button' (the Start button overlay) and
+                # 'Shell_TrayWnd' (the Task Bar).
+                class_name = win32gui.GetClassName(hwnd)
+                if not (class_name == 'Button' or class_name == 'Shell_TrayWnd'):
+                    # Force-minimize the window.
+                    # Fortunately, this seems to work even with windows that have no Minimize button.
+                    # Note that if we tried to hide the window with SW_HIDE,
+                    # it would disappear from the Task Bar as well.
+                    try:
+                        win32gui.ShowWindow(hwnd, win32con.SW_FORCEMINIMIZE)
+                    except:
+                        raise Exception(
+                            """
+                            Could not minimize the follow window:
+                            hwnd - {}
+                            text - {}
+                            class - {}
+                            visible - {}
+                            marked always topmost - {}
+                            """.format(
+                                hwnd,
+                                win32gui.GetWindowText(hwnd),
+                                win32gui.GetClassName(hwnd),
+                                win32gui.IsWindowVisible(hwnd),
+                                win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE) & win32con.WS_EX_TOPMOST
+                            )
+                        )
 
 
 def points_to_region(p1, p2=None):
@@ -503,3 +537,4 @@ def rgbint2rgbtuple(rgb_int):
     green = (rgb_int >> 8) & 255
     blue = (rgb_int >> 16) & 255
     return red, green, blue
+
