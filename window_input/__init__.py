@@ -372,6 +372,8 @@ class Window:
         if y is None:
             y = x[1]
             x = x[0]
+
+        dc = None
         try:
             dc = win32gui.GetWindowDC(self.hwnd)
             colorref = win32gui.GetPixel(dc, x + 8, y + 8)
@@ -381,7 +383,10 @@ class Window:
                 return self.pixel(x, y)
             else:
                 raise Exception("Could not get pixel")
-        win32gui.DeleteDC(dc)
+        finally:
+            if dc:
+                win32gui.ReleaseDC(self.hwnd, dc)
+
         r, g, b = rgbint2rgbtuple(colorref)
         return Color(r, g, b)
 
