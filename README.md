@@ -1,6 +1,5 @@
 # window_input
- A set of tools for interacting with windows, primarily those that are non foreground and even minimized.
-
+A set of tools for interacting with windows, primarily those that are non foreground and even minimized.
 
 ### Installation
     pip install window_input
