@@ -14,8 +14,9 @@ A set of tools for interacting with windows, primarily those that are non foregr
     
     if __name__ == "__main__":
         foreground = Window()
-        foreground.key_down(Key.VK_F4)
-        foreground.key_down(Key.VK_LALT)
+        foreground.key_down(Key.VK_MENU) # Alt key's name
+        foreground.key_down(Key.VK_TAB)
         time.sleep(.2)
-        foreground.key_up(Key.VK_F4)
-        foreground.key_up(Key.VK_LALT)
+        foreground.key_up(Key.VK_MENU)
+        foreground.key_up(Key.VK_TAB)
+        
